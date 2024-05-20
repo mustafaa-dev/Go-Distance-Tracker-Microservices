@@ -6,3 +6,6 @@
 *.test
 *.out
 go.work
+*/bin/*
+*/vendor
+.idea
