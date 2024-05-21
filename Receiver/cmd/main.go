@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	NatsURL = "nats://localhost:4222"
 	Subject = "otu"
 )
 
@@ -70,14 +69,17 @@ func serveWs(w http.ResponseWriter, r *http.Request, nc *nats.Conn) {
 
 	go func() {
 		for otu := range newConn.OTUChan {
-			log.Println("Received OTU:", otu)
-			newConn.SendData(nc)
+			log.Println("OTU Connected :", otu.OTUID)
+			err := newConn.SendData(nc)
+			if err != nil {
+				return
+			}
 		}
 	}()
 }
 func (h *OTUConn) SendData(nc *nats.Conn) error {
 	for otu := range h.OTUChan {
-		log.Println("Sending data to NATS:", otu)
+		log.Printf("Sending %v Coords <%v,%v> to NATS Server", otu.OTUID, otu.Coords.Lat, otu.Coords.Lon)
 		data, err := json.Marshal(otu)
 		if err != nil {
 			log.Println("Error marshaling OTU to JSON:", err)
