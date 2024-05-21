@@ -16,8 +16,15 @@ const (
 	Cost    = 0.5
 )
 
-func NewOTUStates(otu *types.OTU) *types.OTUStates {
-	return &types.OTUStates{
+type OTUStates struct {
+	OTUFirstState *types.OTU
+	OTULastState  *types.OTU
+	Distance      float64
+	Cash          float64
+}
+
+func NewOTUStates(otu *types.OTU) *OTUStates {
+	return &OTUStates{
 		OTUFirstState: otu,
 		OTULastState:  otu,
 	}
@@ -116,17 +123,16 @@ func distance(lat1 float64, lng1 float64, lat2 float64, lng2 float64, unit ...st
 }
 
 func SendData(otu *OTUStates, nc *nats.Conn) error {
-	for {
-		log.Printf("Sending %v Coords %v KM :: %v EGP NATS Server", otu.OTUFirstState.OTUID, otu.Distance, otu.Cash)
-		data, err := json.Marshal(otu)
-		if err != nil {
-			log.Println("Error marshaling OTU to JSON:", err)
-			return err
-		}
-		err = nc.Publish(fmt.Sprintf("otu-%v", otu.OTUFirstState.OTUID), data)
-		if err != nil {
-			log.Println("Error publishing to NATS:", err)
-			return err
-		}
+	log.Printf("Sending %v Coords %v KM :: %v EGP NATS Server", otu.OTUFirstState.OTUID, otu.Distance, otu.Cash)
+	data, err := json.Marshal(otu)
+	if err != nil {
+		log.Println("Error marshaling OTU to JSON:", err)
+		return err
 	}
+	err = nc.Publish(fmt.Sprintf("otu-%v", otu.OTUFirstState.OTUID), data)
+	if err != nil {
+		log.Println("Error publishing to NATS:", err)
+		return err
+	}
+	return nil
 }
